@@ -26,6 +26,7 @@ export const params = {
   jumpImpulse: 700,         // px/s, 탭 시 상승 속도 (parallel·inverted 공통 크기)
   maxFallSpeed: 1200,       // px/s
   playerRadius: 16,         // px
+  playerXRatio: 0.2,        // 플레이어 x = 화면 너비 × 이 비율
   inputMode: 'tap_jump' as InputMode, // tap_jump | hold_rise (프로토타입서 확정)
   baseScrollSpeed: 200,     // px/s  (Difficulty tier0과 일치)
   baseSpawnInterval: 1.8,   // s
@@ -35,6 +36,10 @@ export const params = {
   comboStep: 0.5,           // 콤보 1단계당 배수 증가
   comboMaxMult: 4,          // 콤보 배수 상한
   restartLockTime: 0.3,     // s, 게임오버 후 입력 잠금
+
+  // --- Rendering (렌더 풀 기술 상수 — 게임 밸런스 무관, PARAMS.xlsx 범위 외) ---
+  maxObstaclesOnScreen: 8,  // shared value 풀 크기. 변경 시 useObstaclePool 슬롯 수도 맞춰야 함.
+  obstacleWidth: 48,        // px, 장애물 너비
 
   // --- Difficulty (경과시간 구간별, 사이는 보간) ---
   difficultyTiers: [
