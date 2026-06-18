@@ -149,6 +149,18 @@ The differentiator is **feel, not feature count**. Treat these as part of "done"
 
 ---
 
+## Output style (token economy)
+
+- Default to terse, "caveman"-Lite prose for explanations: drop greetings, filler,
+  and hedging ("Sure, I'd be happy to…", "The reason is…"). Short sentences.
+- Keep intact: code blocks, diffs, technical terms, error/commit/PR messages.
+- Use **Lite** level (grammar intact). Do NOT use Ultra/telegraphic — output must
+  stay auditable.
+- EXEMPT from compression: the short plan (see Workflow), any code/diff shown, and
+  the "how I verified" report. These stay full and clear.
+  
+---
+
 ## Do not
 
 - Add dependencies or change the stack without asking.
