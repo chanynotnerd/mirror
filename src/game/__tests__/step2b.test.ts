@@ -148,24 +148,26 @@ describe('GameEngine 통합 — 충돌', () => {
 describe('GameEngine 통합 — 점수', () => {
   // 장애물 x=0, width=48 → right edge=48.
   // 스크롤 후: 48 - 200*0.001 = 47.8 < playerX(100) → passed=true
-  // X 오버랩: playerX-radius=84 < 47.8 → false → 충돌 없음 → 점수 가산
-  function passedObs(): ObstaclePair {
+  // X 오버랩: playerX-radius=84 > 47.8 → false → 충돌 없음
+  // gapCenter=100/500: |playerY(200/600) - gapCenter| = 100 > perfectWindow(24) → 비퍼펙트
+  function passedNonPerfectObs(): ObstaclePair {
     return new ObstaclePair(0, 48,
-      { gapCenter: 200, gapHeight: 170 },
-      { gapCenter: 600, gapHeight: 170 },
+      { gapCenter: 100, gapHeight: 300 },
+      { gapCenter: 500, gapHeight: 300 },
     );
   }
 
-  test('장애물 통과 시 score += 1', () => {
+  test('비퍼펙트 통과 시 score += 1 (combo 없음)', () => {
     const e = startedEngine();
-    e.obstacles.push(passedObs());
+    e.obstacles.push(passedNonPerfectObs());
     e.onFrame(DT, { tapped: false });
     expect(e.score).toBe(1);
+    expect(e.combo).toBe(0);
   });
 
   test('같은 쌍을 두 번 통과해도 score는 1에서 멈춤 (scored 플래그)', () => {
     const e = startedEngine();
-    e.obstacles.push(passedObs());
+    e.obstacles.push(passedNonPerfectObs());
     e.onFrame(DT, { tapped: false });
     e.onFrame(DT, { tapped: false });
     expect(e.score).toBe(1);

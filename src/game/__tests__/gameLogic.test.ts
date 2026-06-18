@@ -60,6 +60,18 @@ describe('spawnObstaclePair 불변식', () => {
     expect(pair.top.gapHeight).toBe(GAP_H);
     expect(pair.bottom.gapHeight).toBe(GAP_H);
   });
+
+  // divergence=1 → bottomCenter가 aligned에서 독립적으로 분포해야 함.
+  // 100회 중 최소 1회는 aligned에서 10px 이상 벗어난다 (독립 랜덤, 범위 300px).
+  test('divergence=1: 아래 갭이 위 갭과 독립적으로 분포한다 (비정렬)', () => {
+    let maxDiff = 0;
+    for (let i = 0; i < 100; i++) {
+      const pair = spawnObstaclePair(LAYOUT, 1, GAP_H);
+      const aligned = LAYOUT.bottom.top + (pair.top.gapCenter - LAYOUT.top.top);
+      maxDiff = Math.max(maxDiff, Math.abs(pair.bottom.gapCenter - aligned));
+    }
+    expect(maxDiff).toBeGreaterThan(10);
+  });
 });
 
 // ───────────────────────────────────────────────────────────────────────────

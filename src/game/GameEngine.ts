@@ -6,6 +6,7 @@ import { Coin } from './entities/Coin';
 import { spawnObstaclePair, LaneLayout } from './systems/spawner';
 import { difficulty } from './systems/difficulty';
 import { hitsObstacle } from './systems/collision';
+import { isPerfect, comboMultiplier } from './systems/scoring';
 import { GamePhase, Mode } from './types';
 
 export interface FrameInput { tapped: boolean; }
@@ -84,17 +85,25 @@ export class GameEngine {
       }
     }
 
-    // 6. 점수 (충돌 없이 통과한 쌍마다 +1)
+    // 6. 점수 (충돌 없이 통과한 쌍 — 퍼펙트면 combo++·배수 적용, 아니면 combo 리셋)
     for (const obs of this.obstacles) {
       if (!obs.scored && obs.passed(this.topPlayer.x)) {
         obs.scored = true;
-        this.score += params.pointsPerPair;
+        if (isPerfect(this.topPlayer, this.bottomPlayer, obs)) {
+          this.combo++;
+          this.score += params.pointsPerPair * comboMultiplier(this.combo);
+        } else {
+          this.combo = 0;
+          this.score += params.pointsPerPair;
+        }
       }
     }
 
     // 7. 컬링 (화면 왼쪽 밖 제거)
     this.obstacles = this.obstacles.filter(o => !o.offscreen());
   }
+
+  get currentMultiplier(): number { return comboMultiplier(this.combo); }
 
   private gameOver() {
     this.phase = 'GAMEOVER';

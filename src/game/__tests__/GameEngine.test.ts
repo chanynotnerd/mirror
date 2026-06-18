@@ -1,5 +1,7 @@
 import { GameEngine } from '../GameEngine';
 import { params } from '../config/params';
+import { comboMultiplier } from '../systems/scoring';
+import { ObstaclePair } from '../entities/ObstaclePair';
 import type { LaneLayout } from '../systems/spawner';
 
 // step 1에서 GameEngine이 실제로 읽는 필드만 채운 최소 레이아웃.
@@ -103,5 +105,76 @@ describe('GameEngine — step 1 (점프 + 중력 + 클램프)', () => {
     const e = new GameEngine(makeLayout());
     expect(() => e.onFrame(1 / 60, { tapped: true })).not.toThrow();
     expect(e.phase).toBe('MENU');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// step 6 콤보/퍼펙트
+//
+// perfectObs: gapCenter = 플레이어 초기 y(200/600) → isPerfect=true, 충돌 없음.
+// nonPerfectObs: gapCenter = 100/500, gapHeight=300
+//   → |200-100|=100 > perfectWindow(24) → isPerfect=false, 충돌 없음.
+// 두 경우 모두 x=0, width=48: DT=0.001 스크롤 후 right-edge=47.8 < playerX(100) → passed.
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('GameEngine — step 6 콤보/퍼펙트', () => {
+  const DT = 0.001;
+
+  function perfectObs(): ObstaclePair {
+    return new ObstaclePair(0, 48,
+      { gapCenter: 200, gapHeight: 170 },
+      { gapCenter: 600, gapHeight: 170 },
+    );
+  }
+
+  function nonPerfectObs(): ObstaclePair {
+    return new ObstaclePair(0, 48,
+      { gapCenter: 100, gapHeight: 300 },
+      { gapCenter: 500, gapHeight: 300 },
+    );
+  }
+
+  test('퍼펙트 통과 → combo=1, score = pointsPerPair * comboMultiplier(1)', () => {
+    const e = startedEngine();
+    e.obstacles.push(perfectObs());
+    e.onFrame(DT, { tapped: false });
+    expect(e.combo).toBe(1);
+    expect(e.score).toBeCloseTo(params.pointsPerPair * comboMultiplier(1), 8);
+  });
+
+  test('퍼펙트 2회 연속 → combo=2, score 누적 정확', () => {
+    const e = startedEngine();
+    e.obstacles.push(perfectObs(), perfectObs());
+    e.onFrame(DT, { tapped: false });
+    expect(e.combo).toBe(2);
+    const expected = params.pointsPerPair * comboMultiplier(1)
+                   + params.pointsPerPair * comboMultiplier(2);
+    expect(e.score).toBeCloseTo(expected, 8);
+  });
+
+  test('비퍼펙트 통과 → combo=0, score += pointsPerPair', () => {
+    const e = startedEngine();
+    e.obstacles.push(nonPerfectObs());
+    e.onFrame(DT, { tapped: false });
+    expect(e.combo).toBe(0);
+    expect(e.score).toBe(params.pointsPerPair);
+  });
+
+  test('퍼펙트 후 비퍼펙트 → combo 0으로 리셋', () => {
+    const e = startedEngine();
+    e.obstacles.push(perfectObs());
+    e.onFrame(DT, { tapped: false });
+    expect(e.combo).toBe(1);
+    e.obstacles.push(nonPerfectObs());
+    e.onFrame(DT, { tapped: false });
+    expect(e.combo).toBe(0);
+  });
+
+  test('currentMultiplier = comboMultiplier(combo)', () => {
+    const e = startedEngine();
+    e.obstacles.push(perfectObs());
+    e.onFrame(DT, { tapped: false }); // combo=1
+    expect(e.currentMultiplier).toBe(comboMultiplier(1));
+    expect(e.currentMultiplier).toBe(comboMultiplier(e.combo));
   });
 });
