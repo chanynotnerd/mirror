@@ -6,6 +6,7 @@ export const colors = {
   player: '#34E1C4',
   coin: '#FFC24B',
   combo: '#FF5C8A',
+  obstacle: '#3D4654',
   danger: '#FF4D4D',
   text: '#F4F4EF',
   textDim: '#93958F',
